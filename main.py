@@ -9,28 +9,51 @@ import os
 high level goals: 
  - session data collection: associate with 1) time 2) extra conditions
  - visualize session data
-
 - add overlap param
 
 pipeline:
-  sliding window - interval & overlap are hyperparameters
-  preprocess - db2 mother wavelet transform 
+  A) chad "just backprop the whole thing bro" deep learning
+    CNN,LSTM,Transformers
+
+  B) beta "meticulously handcraft features" classical analysis
+    sliding window - interval & overlap are hyperparameters
+    preprocess - db2 mother wavelet transform 
+    log regression
 '''
+
 def receive():
-  pipe = Serial('/dev/tty.Bluetooth-Incoming-Port',9600,timeout=5)
-  time.sleep(1)
+  # call ls /dev/tty.* 
+  port = '/dev/tty.usbmodem1101'
+  print(f'connecting to port {port}')
+  pipe = Serial(port,9600)
+  while not pipe.is_open:
+    time.sleep(0.1)
   data = []
+  s = -1
+  t=1
   while 1:
     # data received should be x-sample long bytearray
-    bs = pipe.read().decode().strip()
-    if not pipe.is_open() or bs == -1: break
-    print('read value: ')
-    print(bs)
-    data.append(bs)
+    b = pipe.read(size=6).decode().strip()
+    if b and s == -1: s = time.perf_counter()
+    if not pipe.is_open or b == -1: break
+    value = float(b)
+    #print('read value: ')
+    #print(value)
+    data.append(value)
+    e = time.perf_counter()
+    if e-s > t: break
   # do data processing
-  sr = 4000
+  sr = 1000
   window = 100
-  chunks = [np.array(chunks[i:i+int(sr/1000*window)]) for i in range(0,len(data),int(sr/1000*window))]
+
+  if t==1:
+    # how to get max hz of device: set delay to 0 in arduino, 
+    print(f'analog device has max {len(data)} hz')
+
+  print(f'num samples: {len(data)} at {sr} sr {t} secs')
+  print(f'at {window}ms window, expecting {t*sr/window} chunks')
+  chunks = [np.array(data[i:i+int(sr/1000*window)]) for i in range(0,len(data),int(sr/1000*window))]
+  print(f'actual chunks {len(chunks)}')
   # write chunks 
   pipe.close()
   return chunks
@@ -42,8 +65,4 @@ def write(chunks: List[np.ndarray], dir='out'):
     chunk.tofile(os.path.join(f,i))
 
 if __name__ == '__main__':
-  data = list(range(9992))
-  sr = 4000
-  window = 100
-  chunks = [data[i:i+int(sr/1000*window)] for i in range(0,len(data),int(sr/1000*window))]
-  print(len(chunks[-1]))
+  receive()

@@ -1,7 +1,15 @@
 import pywt
 import matplotlib.pyplot as plt
 import numpy as np
-
+import subprocess
+def find_usbmodem():
+  try:
+    result = subprocess.check_output(['ls', '/dev/tty.*']).decode()
+    devices = result.split('\n')
+    usbmodem_devices = [device for device in devices if 'usbmodem' in device]
+    return usbmodem_devices[0] if usbmodem_devices else None
+  except subprocess.CalledProcessError as e:
+    return None
 if __name__ == '__main__':
   # decomp area CAN be a hyperparam
   # see multilevel decomp: https://pywavelets.readthedocs.io/en/latest/ref/dwt-discrete-wavelet-transform.html
