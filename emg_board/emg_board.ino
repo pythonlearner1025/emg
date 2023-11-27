@@ -1,5 +1,4 @@
 const int potPin = A0;  // Define the analog input pin for the potentiometer
-const float voltageReference = 5.0; 
 
 void setup() {
   delay(10000);
@@ -9,12 +8,12 @@ void setup() {
 void loop() {
   
   int sensorValue = analogRead(potPin); // Read the value from the potentiometer
-  float voltage = (sensorValue / 1023.0) * voltageReference;
+  //float voltage = (sensorValue / 1023.0) * voltageReference;
 
   // Send the sensor value to the Serial Monitor for reference
   // Send the sensor value to the Serial Plotter
-  Serial.println(voltage);
+  Serial.println(sensorValue);
 
   long sr = 1000/170;
-  delay(0); // Optional delay for smoother readings, adjust as needed
+  delay(10); // Optional delay for smoother readings, adjust as needed
 }
