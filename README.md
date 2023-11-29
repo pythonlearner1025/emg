@@ -19,14 +19,22 @@ We trained a TEMGNet-based transformer with an 8:2 train/validation split over t
 - Predicting raw (unormalized) force: average raw force from the last 10 window samples.
 - Predicting MVC normalized force: average raw force from the last 10 window samples as a percent of MVC.
 
+<br>
+
 <p align="center">
   <img src="https://github.com/pythonlearner1025/emg/blob/main/raw_grip.png">
   <br>
-  <em>Training and validation loss for raw grip forc</em>
+  <em>Training and validation loss for raw grip force</em>
 </p>
 
-![NORMGRIP](https://github.com/pythonlearner1025/emg/blob/main/norm_grip.png)
-*Training and validation loss for MVC normalized grip force*
+<br>
+
+<p align="center">
+  <img src="https://github.com/pythonlearner1025/emg/blob/main/norm_grip.png">
+  <br>
+  <em>Training and validation loss for MVC normalized grip force</em>
+</p>
+
 
 Validation Mean Squared Error (MSE) for raw force prediction was over 10,000, while MVC percentage prediction was between 0.05 and 0.10, highlighting the importance of MVC normalization. This prompts exploration of alternative, easily obtainable normalization variables.
 
