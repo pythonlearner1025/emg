@@ -72,8 +72,8 @@ def visualize(normalize,train_loss,val_loss):
   plt.title("Train Loss")
 
   plt.subplot(1,2,2)
-  plt.plot(val_loss, color='orange')
   ticks = list(range(0,len(val_loss)*4,4))
+  plt.plot(ticks,val_loss, color='orange')
   labels = [str(i) for i in ticks]
   plt.xticks(ticks,labels)
   plt.xlabel('Epochs')
@@ -106,6 +106,13 @@ def iterator(data,BS=4,shuffle=True,normalize=False):
       Y_batch = Y_batch[:,0,:]
     yield X_batch, Y_batch
 
+'''
+putEMG dataset info
+  - force data was sampled at 5120 Hz, with 12-bit A/D conversion 
+  using 3 Hz high-pass and 900 Hz low-pass filter. 
+  - All signals were pre-amplified with gain of 5, using amplifiers 
+  placed on subject’s arm, resulting in total gain of 200. 
+'''
 def load_putemg_force(in_f,out_f,sr=1280,window=500,overlap=250,avg_last_n=10,adc_bit=10,gain=200):
   fs = [os.path.join(in_f,x) for x in os.listdir(in_f) if 'mvc' in x]
 
@@ -151,13 +158,7 @@ def load_putemg_force(in_f,out_f,sr=1280,window=500,overlap=250,avg_last_n=10,ad
   res = np.vstack(all)
   np.save(out_f,res)
 
-'''
-putEMG dataset info
-  - force data was sampled at 5120 Hz, with 12-bit A/D conversion 
-  using 3 Hz high-pass and 900 Hz low-pass filter. 
-  - All signals were pre-amplified with gain of 5, using amplifiers 
-  placed on subject’s arm, resulting in total gain of 200. 
-'''
+
 if __name__ == '__main__':
   import argparse
   parser = argparse.ArgumentParser()
@@ -171,7 +172,7 @@ if __name__ == '__main__':
   if args.load_data:
     load_putemg_force(folder,file,sr=1280,window=500,overlap=250,avg_last_n=10,adc_bit=10,gain=200)
   if args.train:
-    train(args.normalize,file,epochs=50)
+    train(args.normalize,file,epochs=10)
   if args.visualize:
     ret = read(args.normalize)
     if ret:
