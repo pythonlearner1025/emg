@@ -173,7 +173,7 @@ if __name__ == '__main__':
   if args.load_data:
     load_putemg_force(folder,file,sr=1280,window=500,overlap=250,avg_last_n=10,adc_bit=10,gain=200)
   if args.train:
-    train(args.normalize,file,epochs=10)
+    train(args.normalize,file,epochs=50)
   if args.visualize:
     ret = read(args.normalize)
     if ret:
