@@ -156,6 +156,7 @@ def load_putemg_force(in_f,out_f,sr=1280,window=500,overlap=250,avg_last_n=10,ad
 
     all.append(np.array(chunk(newrows)))
   res = np.vstack(all)
+  if not os.path.exists('out'): os.mkdir('out')
   np.save(out_f,res)
 
 
@@ -167,7 +168,7 @@ if __name__ == '__main__':
   parser.add_argument('-l', '--load_data',type=int,default=0)
   parser.add_argument('-v', '--visualize',type=int,default=0)
   args = parser.parse_args()
-  folder = 'putEMG/Data-HDF5'
+  folder = 'putemg-downloader/Data-HDF5'
   file = 'out/force.npy'
   if args.load_data:
     load_putemg_force(folder,file,sr=1280,window=500,overlap=250,avg_last_n=10,adc_bit=10,gain=200)
