@@ -1,6 +1,6 @@
 ## Intro
 
-This is software for Minjune Song (CMU'25) and Darion Homarioon (CMU'24)'s EMG Grip Force Prediction project. This is an independent effort unaffiliated with any coursework. Currently, the project aims to:
+This is software for Minjune Song (CMU'25) and Darion Homarioon (CMU'24)'s EMG Grip Force Prediction project. This is an independent effort unaffiliated with any coursework. Currently, our project aims to:
 - Find subject-specific grip force normalization variables that can serve as alternatives for Maximum Voluntary Contraction (MVC).
 - Investigate how dataset size and composition affects grip force prediction accuracy.
 
