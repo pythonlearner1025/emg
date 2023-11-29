@@ -44,10 +44,10 @@ def train(normalize,file,epochs=50):
     print(f'Epoch {i} | {sum(ts)/len(ts):7.2f} train loss')
 
   # TODO: write train_loss and val_loss to two independent log files  
-  with open(f'validation_train_loss_{normalize}','w') as f:
+  with open(f'validation_train_loss_{normalize}.log','w') as f:
     for t in train_loss:
       f.write(f'{t}\n')
-  with open(f'validation_val_loss_{normalize}','w') as f:
+  with open(f'validation_val_loss_{normalize}.log','w') as f:
     for v in val_loss:
       f.write(f'{v}\n')
 
