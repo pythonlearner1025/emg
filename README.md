@@ -1,13 +1,13 @@
 ## Intro
 
 This is software for Minjune Song (CMU'25) and Darion Homarioon (CMU'24) EMG project. This is an independent effort unaffiliated with any coursework. Currently, the project aims to:
-- Find subject-specific grip force normalization variables as alternatives to MVC.
+- Find subject-specific grip force normalization variables that can serve as alternatives for Maximum Voluntary Contraction (MVC).
 - Investigate how dataset size and composition affects grip force prediction accuracy.
 
 ## Roadmap
 
 - [x] Validate the performance of predicting MVC normalized force on the putEMG dataset.
-- [ ] Build our own EMG platform + dynamometer to measure force.
+- [ ] Develop our own EMG recording platform + dynamometer to measure grip force.
 - [ ] Collect grip force, MVC force, and candidate variable data from TBD participants.
 - [ ] Compare performances of predicting grip force normalized by MVC and other candidate variables.
 
@@ -36,7 +36,7 @@ We trained a TEMGNet-based transformer with an 8:2 train/validation split over t
 </p>
 
 
-Validation Mean Squared Error (MSE) for raw force prediction was over 10,000, while MVC percentage prediction was between 0.05 and 0.10, highlighting the importance of MVC normalization. This prompts exploration of alternative, easily obtainable normalization variables.
+Validation Mean Squared Error (MSE) for raw force prediction was over 10,000, while MVC percentage prediction was between 0.05 and 0.10, highlighting the importance of MVC normalization These results will serve as benchmarks as we develop our own EMG recording platform and dynamometer, and experiment with alternative normalization variables. 
 
 ## Replication Steps
 
