@@ -15,7 +15,7 @@ This is software for Minjune Song (CMU'25) and Darion Homarioon (CMU'24) EMG pro
 
 We used the [putEMG](https://biolab.put.poznan.pl/putemg-dataset/) dataset, a super high-resolution EMG dataset from 44 subjects containing MVC measurements, 24 EMG channels, and hand dynamometer force data. We resampled data from 5120hz to 1280hz and segmented into 500ms windows with 250ms overlap (347,697 segments total).
 
-We trained a TEMGNet-based transformer with an 8:2 train/validation split over the segments for 50 epochs. We trained a model for two separate tasks:
+Following [TEMGNet](https://arxiv.org/pdf/2109.12379.pdf), we trained a transformer network with an 8:2 train/validation split over the segments for 50 epochs. We trained two networks for two separate tasks:
 - Predicting raw (unormalized) force: average raw force from the last 10 window samples.
 - Predicting MVC normalized force: average raw force from the last 10 window samples as a percent of MVC.
 
