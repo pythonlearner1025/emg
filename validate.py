@@ -9,36 +9,32 @@ import pandas as pd
 import numpy as np
 import os
 
-# TODO: 
-# - write script to download dataset from putEMG
-
-def train(file):
+def train(normalize,file,epochs=50):
   data = np.load(file)
-  train_size = int(0.8 * len(data))  # 80% of data for training
-  val_size = len(data) - train_size  # Remaining 20% for validation
+  train_size = int(0.8*len(data))  # 80% of data for training
+  val_size = len(data)-train_size  # Remaining 20% for validation
   train_dataset, val_dataset = random_split(data, [train_size, val_size])
 
-  net = TEMG(64,layers=2,mlp_d=256)
+  net = TEMG(8*8 if normalize else 9*9,layers=2,mlp_d=256)
   loss = MSELoss()
   optim = Adam(net.parameters())
 
-  epochs = 50
   train_loss,val_loss = [],[]
   for i in range(epochs):
     ts = []
-    for X,Y in tqdm(t:=iterator(np.array(train_dataset), BS=4, shuffle=True)):
+    for n,(X,Y) in enumerate(tqdm(t:=iterator(np.array(train_dataset), BS=4, shuffle=True, normalize=normalize))):
       optim.zero_grad()
       X,Y = torch.tensor(X,dtype=torch.float32,requires_grad=True), torch.tensor(Y[:,0],dtype=torch.float32)
       o = net(X).squeeze()
       l = loss(o,Y)
       l.backward()
       optim.step()
-      t.append(l.item())
-      train_loss.append(l.item())
+      ts.append(l.item())
 
+    train_loss.append(sum(ts)/len(ts))
     if i % 4 == 0:
       vals = []
-      for X,Y in tqdm(t:=iterator(np.array(val_dataset), BS=4, shuffle=False)):
+      for n,(X,Y) in enumerate(tqdm(t:=iterator(np.array(val_dataset), BS=4, shuffle=False, normalize=normalize))):
         X,Y = torch.tensor(X,dtype=torch.float32,requires_grad=True), torch.tensor(Y[:,0],dtype=torch.float32)
         o = net(X).squeeze()
         l = loss(o,Y)
@@ -47,19 +43,53 @@ def train(file):
       val_loss.append(sum(vals)/len(vals))
     print(f'Epoch {i} | {sum(ts)/len(ts):7.2f} train loss')
 
-  plt.plot(list(range(len(train_loss))), train_loss, label='train loss')
-  plt.plot(list(range(len(val_loss))), val_loss, label='val loss')
-  plt.legend()
-  plt.ylabel('MSE Loss')
+  # TODO: write train_loss and val_loss to two independent log files  
+  with open(f'validation_train_loss_{normalize}','w') as f:
+    for t in train_loss:
+      f.write(f'{t}\n')
+  with open(f'validation_val_loss_{normalize}','w') as f:
+    for v in val_loss:
+      f.write(f'{v}\n')
+
+def read(normalize):
+    train_loss_file,val_loss_file = None,None
+    for file in os.listdir('.'):
+      print(file)
+      if file.startswith(f'validation_train_loss_{normalize}'): train_loss_file = file
+      elif file.startswith(f'validation_val_loss_{normalize}'): val_loss_file = file
+    if train_loss_file is None or val_loss_file is None: return None
+    with open(train_loss_file, 'r') as f:
+        train_loss = [float(line.strip()) for line in f.readlines()]
+    with open(val_loss_file, 'r') as f:
+        val_loss = [float(line.strip()) for line in f.readlines()]
+    return normalize, train_loss, val_loss
+
+def visualize(normalize,train_loss,val_loss):
+  plt.subplot(1,2,1)
+  plt.plot(list(range(len(train_loss))), train_loss, color='blue')
+  plt.xlabel('Epochs')
+  plt.ylabel('Mean Squared Error')
+  plt.title("Train Loss")
+
+  plt.subplot(1,2,2)
+  plt.plot(val_loss, color='orange')
+  ticks = list(range(0,len(val_loss)*4,4))
+  labels = [str(i) for i in ticks]
+  plt.xticks(ticks,labels)
+  plt.xlabel('Epochs')
+  plt.title("Validation Loss")
+  
+  plt.suptitle(f"{'Raw grip force' if not normalize else 'MVC normalized grip force'} prediction")
   plt.show()
 
-def iterator(data,BS=4,shuffle=True):
+def iterator(data,BS=4,shuffle=True,normalize=False):
+  offset = 1 if not normalize else 2
   B,C,features = data.shape
-  X,Y = data[:,:,:-2],data[:,:,-2:]
-  X,Y = X[:,:-(C%(features-2)),:],Y[:,:-(C%(features-2))]
-  C = (C//(features-2))
-  X = X.reshape(B,C,features-2*features-2)
-  Y = Y.reshape(B,C,features-2,2)[:,:,0,:]
+  X,Y = data[:,:,:-offset],data[:,:,-offset:]
+  X,Y = X[:,:-(C%(features-offset)),:],Y[:,:-(C%(features-offset))]
+  C = (C//(features-offset))
+  X = X.reshape(B,C,(features-offset)*(features-offset))
+  Y = Y.reshape(B,C,features-offset,offset)[:,:,0,:]
   assert X.shape[1] == Y.shape[1]
 
   if shuffle:
@@ -69,8 +99,11 @@ def iterator(data,BS=4,shuffle=True):
 
   for i in range(0, X.shape[0], BS):
     X_batch,Y_batch = X[i:i+BS],Y[i:i+BS]
-    Y_batch = Y_batch[:,:,0]/Y_batch[:,:,1]
-    Y_batch[Y_batch<0] = 0
+    if normalize:
+      Y_batch = Y_batch[:,:,0]/Y_batch[:,:,1]
+      Y_batch[Y_batch<0] = 0
+    else:
+      Y_batch = Y_batch[:,0,:]
     yield X_batch, Y_batch
 
 def load_putemg_force(in_f,out_f,sr=1280,window=500,overlap=250,avg_last_n=10,adc_bit=10,gain=200):
@@ -126,7 +159,23 @@ putEMG dataset info
   placed on subject’s arm, resulting in total gain of 200. 
 '''
 if __name__ == '__main__':
+  import argparse
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-t', '--train',type=int,default=1)
+  parser.add_argument('-n', '--normalize',type=int,default=1)
+  parser.add_argument('-l', '--load_data',type=int,default=0)
+  parser.add_argument('-v', '--visualize',type=int,default=0)
+  args = parser.parse_args()
   folder = 'putEMG/Data-HDF5'
   file = 'out/force.npy'
-  load_putemg_force(folder,file,sr=1280,window=500,overlap=250,avg_last_n=10,adc_bit=10,gain=200)
-  train(file)
+  if args.load_data:
+    load_putemg_force(folder,file,sr=1280,window=500,overlap=250,avg_last_n=10,adc_bit=10,gain=200)
+  if args.train:
+    train(args.normalize,file,epochs=50)
+  if args.visualize:
+    ret = read(args.normalize)
+    if ret:
+      n,train_loss,val_loss = ret 
+      visualize(n,train_loss,val_loss)
+    else:
+      raise Exception("no validation and loss files found")
